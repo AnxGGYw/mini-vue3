@@ -8,13 +8,15 @@ class ReactiveEffect {
   }
   run() {
     activeEffect = this
-    this.fn()
+    return this.fn()
   }
 }
 
 export function effect(fn) {
   const instance = new ReactiveEffect(fn)
   instance.run()
+  // return runner
+  return instance.run.bind(instance)
 }
 
 // 收集依赖

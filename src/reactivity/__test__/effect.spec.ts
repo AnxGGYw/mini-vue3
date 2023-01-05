@@ -17,4 +17,17 @@ describe('effect', () => {
     user.age++
     expect(effectAge).toBe(23)
   })
+
+  it('should return runner when called effect', () => {
+    let age = 22
+    const runner: any = effect(() => {
+      age++
+      return 'anXin'
+    })
+    expect(age).toBe(23)
+    // 执行runner
+    const r = runner()
+    expect(age).toBe(24)
+    expect(r).toBe('anXin')
+  })
 })
