@@ -1,9 +1,13 @@
 let activeEffect: any
 let targetMap = new WeakMap()
 
+interface effectOptions {
+  scheduler?: Function
+}
+
 class ReactiveEffect {
-  private fn: any
-  constructor(fn: any) {
+  private fn: Function
+  constructor(fn: Function, public scheduler?: Function) {
     this.fn = fn
   }
   run() {
@@ -12,15 +16,15 @@ class ReactiveEffect {
   }
 }
 
-export function effect(fn) {
-  const instance = new ReactiveEffect(fn)
+export function effect(fn: Function, options: effectOptions = {}) {
+  const instance = new ReactiveEffect(fn, options.scheduler)
   instance.run()
   // return runner
   return instance.run.bind(instance)
 }
 
 // 收集依赖
-export function track(target, key) {
+export function track(target: any, key: string | symbol) {
   let depsMap = targetMap.get(target)
   if (!depsMap) {
     depsMap = new Map()
@@ -35,13 +39,17 @@ export function track(target, key) {
 }
 
 // 派发更新，触发依赖
-export function trigger(target, key) {
+export function trigger(target: any, key: string | symbol) {
   let depsMap = targetMap.get(target)
   let dep = depsMap.get(key)
 
   if (dep && dep.size) {
     for (const effect of dep) {
-      effect.run()
+      if (effect.scheduler) {
+        effect.scheduler()
+      } else {
+        effect.run()
+      }
     }
   }
 }
