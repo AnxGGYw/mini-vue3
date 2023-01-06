@@ -58,11 +58,13 @@ describe('effect', () => {
     user.age++
     // 响应式数据变化时，只会执行scheduler, 不会执行effect第一个参数fn
     expect(scheduler).toHaveBeenCalledTimes(1)
+    user.age++
+    expect(scheduler).toHaveBeenCalledTimes(2)
     expect(dummy).toBe(22)
     // 执行effect返回值runner时，只会执行effect第一个参数fn，不会执行scheduler
     run()
-    expect(dummy).toBe(23)
-    expect(scheduler).toHaveBeenCalledTimes(1)
+    expect(dummy).toBe(24)
+    expect(scheduler).toHaveBeenCalledTimes(2)
   })
 
   it('stop', () => {
