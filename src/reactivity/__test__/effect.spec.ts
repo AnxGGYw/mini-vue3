@@ -81,9 +81,14 @@ describe('effect', () => {
     stop(runner)
     user.age = 24
     expect(dummy).toBe(23)
+
+    // user.age = user.age + 1, 同时出发getter, setter
+    user.age++
+    expect(dummy).toBe(23)
+
     const r = runner()
     expect(r).toBe('anXin')
-    expect(dummy).toBe(24)
+    expect(dummy).toBe(25)
   })
 
   it('onStop', () => {

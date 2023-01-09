@@ -1,6 +1,8 @@
 import { extend } from '../shared'
 
-let activeEffect: any
+let activeEffect: ReactiveEffect | undefined
+let shouldTrack: boolean
+
 let targetMap = new WeakMap()
 
 interface effectOptions {
@@ -10,22 +12,31 @@ interface effectOptions {
 
 class ReactiveEffect {
   private fn: Function
-  deps = []
-  active = true
+  deps: Set<ReactiveEffect>[] = []
+  active: boolean = true
   onStop: Function
   scheduler?: Function
   constructor(fn: Function) {
     this.fn = fn
   }
   run() {
+    if (!this.active) {
+      return this.fn()
+    }
+    shouldTrack = true
     activeEffect = this
-    return this.fn()
+    const res = this.fn()
+
+    // reset shouldTrack
+    shouldTrack = false
+
+    return res
   }
   stop() {
     if (this.active) {
-      if (this.onStop) {
-        this.onStop()
-      }
+      // 可选链 this.onStop && this.onStop()
+      this.onStop?.()
+
       clearUpEffect(this)
       this.active = false
     }
@@ -33,8 +44,8 @@ class ReactiveEffect {
 }
 
 // 清空当前effect
-function clearUpEffect(effect: any) {
-  effect.deps.forEach((dep: any) => {
+function clearUpEffect(effect: ReactiveEffect) {
+  effect.deps.forEach((dep: Set<ReactiveEffect>) => {
     dep.delete(effect)
   })
 }
@@ -67,6 +78,7 @@ export function track(target: any, key: string | symbol) {
   }
 
   if (!activeEffect) return
+  if (!shouldTrack) return
 
   dep.add(activeEffect)
   // effect反向收集dep，stop方法才能知道
