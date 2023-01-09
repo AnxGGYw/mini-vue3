@@ -66,6 +66,8 @@ export function effect(fn: Function, options: effectOptions = {}) {
 
 // 收集依赖
 export function track(target: any, key: string | symbol) {
+  if (!isTracking()) return
+
   let depsMap = targetMap.get(target)
   if (!depsMap) {
     depsMap = new Map()
@@ -76,13 +78,15 @@ export function track(target: any, key: string | symbol) {
     dep = new Set()
     depsMap.set(key, dep)
   }
-
-  if (!activeEffect) return
-  if (!shouldTrack) return
-
+  // 小优化,已经在dep中，不需要重复收集，虽然是这里是Set类型，但是要想到这一点
+  if (dep.has(activeEffect)) return
   dep.add(activeEffect)
   // effect反向收集dep，stop方法才能知道
   activeEffect.deps.push(dep)
+}
+
+function isTracking() {
+  return shouldTrack && activeEffect !== undefined
 }
 
 // 派发更新，触发依赖
