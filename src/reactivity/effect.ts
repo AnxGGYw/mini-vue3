@@ -15,8 +15,7 @@ export class ReactiveEffect {
   deps: Set<ReactiveEffect>[] = []
   active: boolean = true
   onStop: Function
-  scheduler?: Function
-  constructor(fn: Function) {
+  constructor(fn: Function, public scheduler?: Function) {
     this.fn = fn
   }
   run() {
@@ -53,7 +52,7 @@ function clearUpEffect(effect: ReactiveEffect) {
 
 export function effect(fn: Function, options: effectOptions = {}) {
   // fn
-  const _effect = new ReactiveEffect(fn)
+  const _effect = new ReactiveEffect(fn, options.scheduler)
 
   // 合并options
   extend(_effect, options)
