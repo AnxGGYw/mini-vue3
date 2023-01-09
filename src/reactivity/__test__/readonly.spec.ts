@@ -1,4 +1,4 @@
-import { readonly } from '../reactive'
+import { isReactive, isReadonly, reactive, readonly } from '../reactive'
 
 describe('readonly', () => {
   it('happy path', () => {
@@ -15,5 +15,24 @@ describe('readonly', () => {
     console.warn = jest.fn()
     user.name++
     expect(console.warn).toBeCalled()
+  })
+
+  it('isReadonly', () => {
+    const original = { foo: 1 }
+    const wrapped = readonly(original)
+
+    expect(isReadonly(original)).toBe(false)
+    expect(isReadonly(wrapped)).toBe(true)
+  })
+
+  it('isReactive', () => {
+    const original = { foo: 1 }
+    const wrapped = reactive(original)
+
+    expect(isReactive(original)).toBe(false)
+    expect(isReactive(wrapped)).toBe(true)
+
+    expect(isReadonly(original)).toBe(false)
+    expect(isReadonly(wrapped)).toBe(false)
   })
 })
