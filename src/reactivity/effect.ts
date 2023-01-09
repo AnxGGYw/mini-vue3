@@ -10,7 +10,7 @@ interface effectOptions {
   onStop?: Function
 }
 
-class ReactiveEffect {
+export class ReactiveEffect {
   private fn: Function
   deps: Set<ReactiveEffect>[] = []
   active: boolean = true
@@ -48,6 +48,7 @@ function clearUpEffect(effect: ReactiveEffect) {
   effect.deps.forEach((dep: Set<ReactiveEffect>) => {
     dep.delete(effect)
   })
+  effect.deps.length = 0
 }
 
 export function effect(fn: Function, options: effectOptions = {}) {
@@ -78,6 +79,11 @@ export function track(target: any, key: string | symbol) {
     dep = new Set()
     depsMap.set(key, dep)
   }
+
+  trackEffect(dep)
+}
+
+export function trackEffect(dep) {
   // 小优化,已经在dep中，不需要重复收集，虽然是这里是Set类型，但是要想到这一点
   if (dep.has(activeEffect)) return
   dep.add(activeEffect)
@@ -85,7 +91,7 @@ export function track(target: any, key: string | symbol) {
   activeEffect.deps.push(dep)
 }
 
-function isTracking() {
+export function isTracking() {
   return shouldTrack && activeEffect !== undefined
 }
 
@@ -94,6 +100,10 @@ export function trigger(target: any, key: string | symbol) {
   let depsMap = targetMap.get(target)
   let dep = depsMap.get(key)
 
+  triggerEffect(dep)
+}
+
+export function triggerEffect(dep: Set<ReactiveEffect>) {
   if (dep && dep.size) {
     for (const effect of dep) {
       if (effect.scheduler) {
