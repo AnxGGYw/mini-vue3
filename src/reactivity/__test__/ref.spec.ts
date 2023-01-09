@@ -1,6 +1,6 @@
 import { effect } from '../effect'
 import { reactive } from '../reactive'
-import { isRef, ref, unRef } from '../ref'
+import { isRef, proxyRefs, ref, unRef } from '../ref'
 
 describe('ref', () => {
   it('happy path', () => {
@@ -65,5 +65,35 @@ describe('ref', () => {
 
     expect(unRef(num)).toBe(1)
     expect(unRef(1)).toBe(1)
+  })
+
+  it('proxyRefs', () => {
+    const obj = {
+      name: 'anXin',
+      age: ref(22)
+    }
+    const proxyObj = proxyRefs(obj)
+
+    // proxyRefs 里面的ref 不用使用.value形式访问
+
+    /**
+     * setup() {
+     *   const num = ref(10)
+     *   return {
+     *     num
+     *   }
+     * }
+     */
+    // template 可以也可以不用.value来访问ref的值
+    expect(proxyObj.age).toBe(22)
+    expect(proxyObj.name).toBe('anXin')
+
+    proxyObj.age = 23
+    expect(proxyObj.age).toBe(23)
+    expect(obj.age.value).toBe(23)
+
+    proxyObj.age = ref(24)
+    expect(proxyObj.age).toBe(24)
+    expect(obj.age.value).toBe(24)
   })
 })
