@@ -35,4 +35,17 @@ describe('readonly', () => {
     expect(isReadonly(original)).toBe(false)
     expect(isReadonly(wrapped)).toBe(false)
   })
+
+  it('nested readonly', () => {
+    const original = { foo: 1, bar: { baz: [123], fn: function () {} } }
+    const observed = readonly(original)
+
+    expect(isReactive(original)).toBe(false)
+
+    expect(isReadonly(observed)).toBe(true)
+    expect(isReadonly(observed.bar)).toBe(true)
+    expect(isReadonly(observed.bar.baz)).toBe(true)
+    // fn
+    expect(isReadonly(observed.bar.fn)).toBe(false)
+  })
 })
