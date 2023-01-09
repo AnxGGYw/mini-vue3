@@ -1,10 +1,11 @@
-import { isObject } from '../shared'
+import { extend, isObject } from '../shared'
 import { track, trigger } from './effect'
 import { reactive, ReactiveFlags, readonly } from './reactive'
 
 const get = createGetter()
 const set = createSetter()
 const readonlyGet = createGetter(true)
+const shallowReadonlyGet = createGetter(true, true)
 
 const createMutableHandlers = () => {
   return {
@@ -23,11 +24,19 @@ const createReadonlyHandlers = () => {
   }
 }
 
+const createShallowReadonlyHandlers = () => {
+  return extend({}, readonlyHandlers, {
+    get: shallowReadonlyGet
+  })
+}
+
 export const mutableHandlers = createMutableHandlers()
 
 export const readonlyHandlers = createReadonlyHandlers()
 
-function createGetter(isReadonly = false) {
+export const shallowReadonlyHandlers = createShallowReadonlyHandlers()
+
+function createGetter(isReadonly = false, shallow = false) {
   return (target: any, key: string | symbol) => {
     if (key === ReactiveFlags.IS_READONLY) {
       return isReadonly
@@ -36,6 +45,10 @@ function createGetter(isReadonly = false) {
     }
 
     const res = Reflect.get(target, key)
+
+    if (shallow) {
+      return res
+    }
 
     // nested object 嵌套对象 排除 function
     if (isObject(res)) {
